@@ -64,6 +64,7 @@ def saveUserId(userId):
 
 @app.post("/callback")
 async def handle_callback(request: Request):
+    global lightStatus
     signature = request.headers['X-Line-Signature']
     body = await request.body()
     body = body.decode()
@@ -81,33 +82,54 @@ async def handle_callback(request: Request):
 
         res = parse_cmd(event.message.text)
 
-        if res.iot_command != 0:
+        if res.iot_command != -1:
             DAN.push('MSG-I', res.iot_command)
     
         if res.msg_type == 'flex':
             await line_bot_api.reply_message(event.reply_token, FlexSendMessage('flex message', res.line_reply))
         else:    
             await line_bot_api.reply_message(event.reply_token, TextSendMessage(text=res.line_reply))
+
+        # f = open("log.txt", "r")
+        # await line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f'{f.read()}'))
         
     return 'OK'
 
 
 def pull_BoardData():
     global lightStatus, lsLock
+
+
     while True:
         data = DAN.pull('MSG-O')
-        if data:
+        if data and data[0]:
             lsLock.acquire()
-            lightStatus = data[0]
+            # lightStatus = str(data[0])
+
+
+            # write 1 to log if data[0] > 1000
+            f = open("log.txt", "w")
+
+            if data[0] >= 1000:
+                f.write("0")
+                DAN.push('MSG-I', 0)
+            else:
+                f.write("1")
+                DAN.push('MSG-I', 1)
+
+            
+            f.close()
+
             lsLock.release()
 
+
             # Fake dict for demo
-            user_Security = {}
-            user_Security[id] = True
+            # user_Security = {}
+            # user_Security[id] = True
 
             # (data[0] > 0.1) will be replaced by real data format
-            if (data[0] > 0.1) and user_Security[id]:
-                line_bot_api.push_message(userId, TextSendMessage(text='偵測到人員進出！'))
+            # if (data[0] > 0.1) and user_Security[id]:
+            #     line_bot_api.push_message(userId, TextSendMessage(text='偵測到人員進出！'))
         time.sleep(1)
 
 
