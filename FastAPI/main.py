@@ -23,16 +23,11 @@ async_http_client = AiohttpAsyncHttpClient(session)
 line_bot_api = AsyncLineBotApi(CHANNEL_ACCESS_TOKEN, async_http_client)
 parser = WebhookParser(CHANNEL_SECRET)
 
-
-lightStatus = None
-lsLock = threading.Lock()
-
 user_id_set = set()
 app = FastAPI()
 
 
 ServerURL = 'https://3.iottalk.tw/'
-Reg_addr = None
 mac_addr = 'CD8601D38' + str(5634)
 Reg_addr = mac_addr
 DAN.profile['dm_name'] = 'SD_LineBot'
@@ -43,28 +38,8 @@ print("dm_name is ", DAN.profile['dm_name'])
 print("Server is ", ServerURL)
 
 
-def loadUserId():
-    try:
-        idFile = open('idfile', 'r')
-        idList = idFile.readlines()
-        idFile.close()
-        idList = idList[0].split(';')
-        idList.pop()
-        return idList
-    except Exception as e:
-        # print(e)
-        return []
-
-
-def saveUserId(userId):
-    idFile = open('idfile', 'a')
-    idFile.write(userId+';')
-    idFile.close()
-
-
 @app.post("/callback")
 async def handle_callback(request: Request):
-    global lightStatus
     signature = request.headers['X-Line-Signature']
     body = await request.body()
     body = body.decode()
@@ -89,106 +64,50 @@ async def handle_callback(request: Request):
             await line_bot_api.reply_message(event.reply_token, FlexSendMessage('flex message', res.line_reply))
         else:    
             await line_bot_api.reply_message(event.reply_token, TextSendMessage(text=res.line_reply))
-
-        # f = open("log.txt", "r")
-        # await line_bot_api.reply_message(event.reply_token, TextSendMessage(text=f'{f.read()}'))
         
     return 'OK'
 
 
 def pull_BoardData():
-    global lightStatus, lsLock
-
-
+    global lsLock
+    lsLock = threading.Lock()
     while True:
         data = DAN.pull('MSG-O')
         if data and data[0]:
-            lsLock.acquire()
-            # lightStatus = str(data[0])
-
-
-            # write 1 to log if data[0] > 1000
-            f = open("log.txt", "w")
-
-            if data[0] >= 1000:
-                f.write("0")
-                DAN.push('MSG-I', 0)
-            else:
-                f.write("1")
-                DAN.push('MSG-I', 1)
-
-            
-            f.close()
-
-            lsLock.release()
-
-
-            # Fake dict for demo
-            # user_Security = {}
-            # user_Security[id] = True
-
-            # (data[0] > 0.1) will be replaced by real data format
-            # if (data[0] > 0.1) and user_Security[id]:
-            #     line_bot_api.push_message(userId, TextSendMessage(text='偵測到人員進出！'))
+            with lsLock:
+                with open("light_status.txt", "w") as f:
+                    if data[0] >= 1000:
+                        f.write("0")
+                        DAN.push('MSG-I', 0)
+                    else:
+                        f.write("1")
+                        DAN.push('MSG-I', 1)
         time.sleep(1)
 
 
-# Procees the message and returns the reply
-def someProcessing(id, data):
-    global lightStatus
-    lineReply = '我聽不懂你在說什麼'
-    IoTCommand = None
+def loadUserId():
+    try:
+        idFile = open('idfile', 'r')
+        idList = idFile.readlines()
+        idFile.close()
+        idList = idList[0].split(';')
+        idList.pop()
+        return idList
+    except Exception as e:
+        print(e)
+        return []
 
-    # Open/Close Lights
-    if data == '開燈':
-        if lightStatus == True:
-            lineReply = '燈已經是開的囉'
-        else:
-            lightStatus = True
-            lineReply = '開囉！'
-            IoTCommand = '1'
 
-    elif data == '關燈':
-        if lightStatus == False:
-            lineReply = '燈已經是關的囉'
-        else:
-            lightStatus = False
-            lineReply = '關囉！'
-            IoTCommand = '0'
-
-    # Check Light Status
-    elif 'status' in data:
-        if lightStatus == True:
-            lineReply = '目前燈是開的'
-        else:
-            lineReply = '目前燈是關的'
-
-    # Track door status
-    elif 'security' in data:
-        # Fake dict for demo
-        user_Security = {}
-        user_Security[id] = True
-
-        if user_Security[id] == True:
-            lineReply = '偵測到人員進出時，會立即通知您！'
-        else:
-            lineReply = '已為您關閉人員進出通知！'
-
-    return lineReply, IoTCommand
+def saveUserId(userId):
+    idFile = open('idfile', 'a')
+    idFile.write(userId+';')
+    idFile.close()
 
 
 if __name__ == '__main__':
     idList = loadUserId()
-    print(idList)
     if idList:
         user_id_set = set(idList)
-
-    try:
-        for userId in user_id_set:
-            line_bot_api.push_message(userId, TextSendMessage(text='LineBot is ready for you.'))
-    except Exception as e:
-        print(e)
-
 
     thread2 = threading.Thread(target=pull_BoardData)
     thread2.daemon = True

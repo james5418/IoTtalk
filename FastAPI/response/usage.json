@@ -74,8 +74,8 @@
 				"color": "#27ACB2",
 				"action": {
 				  "type": "message",
-				  "label": "light status",
-				  "text": "light status"
+				  "label": "status",
+				  "text": "status"
 				},
 				"margin": "lg"
 			  },
@@ -105,7 +105,6 @@
 			  }
 			]
 		  }
-		  
 	  ],
 	  "backgroundColor": "#464F69"
 	},
