@@ -1,20 +1,30 @@
 from fastapi import FastAPI, Request, HTTPException
 import uvicorn
-from linebot import LineBotApi, WebhookHandler
+from linebot import AsyncLineBotApi, WebhookParser, WebhookHandler
+from linebot.aiohttp_async_http_client import AiohttpAsyncHttpClient
 from linebot.exceptions import InvalidSignatureError 
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
+from linebot.models import MessageEvent, TextMessage, TextSendMessage, FlexSendMessage
 from dotenv import load_dotenv
+import aiohttp
 import os
 import threading
 import queue
 import time
 import DAN
+from cmdHandler import parse_cmd
+
 
 
 load_dotenv()
 CHANNEL_ACCESS_TOKEN = os.environ.get("CHANNEL_ACCESS_TOKEN")
 CHANNEL_SECRET = os.environ.get("CHANNEL_SECRET")
-line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
+
+session = aiohttp.ClientSession()
+async_http_client = AiohttpAsyncHttpClient(session)
+line_bot_api = AsyncLineBotApi(CHANNEL_ACCESS_TOKEN, async_http_client)
+parser = WebhookParser(CHANNEL_SECRET)
+
+# line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
 
 # for storing messages from LineBot
@@ -56,6 +66,41 @@ def saveUserId(userId):
     idFile = open('idfile', 'a')
     idFile.write(userId+';')
     idFile.close()
+
+
+@app.get("/")
+def hello():
+    return "HTTPS Test OK."
+
+
+@app.post("/callback")
+async def handle_callback(request: Request):
+    signature = request.headers['X-Line-Signature']
+    body = await request.body()
+    body = body.decode()
+
+    try:
+        events = parser.parse(body, signature)
+    except InvalidSignatureError:
+        raise HTTPException(status_code=400, detail="Invalid signature")
+
+    for event in events:
+        if not isinstance(event, MessageEvent):
+            continue
+        if not isinstance(event.message, TextMessage):
+            continue
+
+        res = parse_cmd(event.message.text)
+
+        # if res.iot_command:
+        #     DAN.push('MSG-I', iot_command)
+    
+        if res.msg_type == 'flex':
+            await line_bot_api.reply_message(event.reply_token, FlexSendMessage('flex message', res.line_reply))
+        else:    
+            await line_bot_api.reply_message(event.reply_token, TextSendMessage(text=res.line_reply))
+        
+    return 'OK'
 
 
 @app.post("/")

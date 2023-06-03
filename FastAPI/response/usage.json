@@ -1,0 +1,110 @@
+{
+	"type": "bubble",
+	"body": {
+	  "type": "box",
+	  "layout": "vertical",
+	  "contents": [
+		{
+		  "type": "text",
+		  "text": "Usage",
+		  "weight": "bold",
+		  "size": "xxl",
+          "margin": "none",
+		  "color": "#ffffffde"
+		},
+		{
+		  "type": "separator",
+		  "margin": "md"
+		},
+		{
+		  "type": "box",
+		  "layout": "vertical",
+		  "margin": "lg",
+		  "spacing": "sm",
+		  "contents": [
+			{
+			  "type": "text",
+			  "text": "Welcome to your Smart Light Control System! Click or type the given commands to control your lights.",
+			  "size": "sm",
+			  "color": "#ffffffde",
+			  "wrap": true
+			}
+		  ]
+		},
+		{
+		  "type": "box",
+		  "layout": "vertical",
+		  "margin": "none",
+		  "spacing": "sm",
+		  "contents": [
+			{
+			  "type": "button",
+			  "style": "secondary",
+			  "height": "sm",
+			  "color": "#27ACB2",
+			  "action": {
+				"type": "message",
+				"label": "open",
+				"text": "open"
+			  },
+			  "margin": "lg"
+			},
+			{
+			  "type": "button",
+			  "style": "secondary",
+			  "height": "sm",
+			  "color": "#27ACB2",
+			  "action": {
+				"type": "message",
+				"label": "close",
+				"text": "close"
+			  },
+			  "margin": "lg"
+			},
+			{
+				"type": "button",
+				"style": "secondary",
+				"height": "sm",
+				"color": "#27ACB2",
+				"action": {
+				  "type": "message",
+				  "label": "light status",
+				  "text": "light status"
+				},
+				"margin": "lg"
+			  },
+			{
+			  "type": "button",
+			  "style": "secondary",
+			  "height": "sm",
+			  "color": "#27ACB2",
+			  "action": {
+				"type": "message",
+				"label": "schedule",
+				"text": "schedule"
+			  },
+			  "margin": "lg"
+			},
+			{
+			  "type": "button",
+			  "style": "secondary",
+			  "height": "sm",
+			  "color": "#27ACB2",
+			  "action": {
+				"type": "message",
+				"label": "help",
+				"text": "help"
+			  },
+			  "margin": "lg"
+			}
+		  ]
+		}
+	  ],
+	  "backgroundColor": "#464F69"
+	},
+	"styles": {
+	  "footer": {
+		"separator": true
+	  }
+	}
+}
