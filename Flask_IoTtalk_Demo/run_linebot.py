@@ -7,34 +7,32 @@ import DAN
 import threading
 import queue
 import time
+from dotenv import load_dotenv
+import os
 
+load_dotenv()
+channel_token = os.getenv("CHANNEL_TOKEN")
+channel_secret = os.getenv("CHANNEL_SECRET")
+line_bot_api = LineBotApi(channel_token)
+handler = WebhookHandler(channel_secret)
 
-line_bot_api = LineBotApi(
-    'nk8wb4VgFLnYnHFKifexvdsxBNwXr+YPsA/EDjih+4oj93IfMQkeYB91xWwKoLwy+wPzJhqEwTvnPsQIswSbxl6KJ3TmYTn7ePPu2B/tccVcWVPem+ft8RNZnD55LfJUwNMeTVERRBf7gVVQkxYPwAdB04t89/1O/w1cDnyilFU=')
-handler = WebhookHandler('909d0a7bfdf05d16f854572179a87e36')
 user_id_set = set()
 app = Flask(__name__)
 
 # msgQueue is a queue for storing messages from LineBot
 msgQueue = queue.Queue()
-
-
-# boardData is a queue for storing data from IoTtalk
 lightStatus = None
 lsLock = threading.Lock()
 
-
+# IoTtalk Setting, comment out because 7.iottalk.tw currently is down
 # ServerURL = 'https://7.iottalk.tw/'
 # Reg_addr = None
 # mac_addr = 'CD8601D38' + str(5634)
-
 # Reg_addr = mac_addr
 # DAN.profile['dm_name'] = 'WPS_LineBot'
 # DAN.profile['df_list'] = ['MSG-I', 'MSG-O']
 # DAN.profile['d_name'] = DAN.profile['dm_name'] + str(random.randint(0, 100))
 # DAN.device_registration_with_retry(ServerURL, Reg_addr)
-
-
 # print("dm_name is ", DAN.profile['dm_name'])
 # print("Server is ", ServerURL)
 
