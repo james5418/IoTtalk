@@ -100,8 +100,7 @@ def pull_lineMessage():
 
         # send the reply to LineBot
         for userId in user_id_set:
-            line_bot_api.push_message(
-                userId, TextSendMessage(text=lineReply))
+            line_bot_api.push_message(userId, TextSendMessage(text=lineReply))
             user_id_set.remove(userId)
             break
 
@@ -125,8 +124,7 @@ def pull_BoardData():
 
             # (data[0] > 0.1) will be replaced by real data format
             if (data[0] > 0.1) and user_Security[id]:
-                line_bot_api.push_message(
-                    userId, TextSendMessage(text='偵測到人員進出！'))
+                line_bot_api.push_message(userId, TextSendMessage(text='偵測到人員進出！'))
         time.sleep(1)
 
 
