@@ -32,36 +32,42 @@
 		  ]
 		},
 		{
-		  "type": "box",
-		  "layout": "vertical",
-		  "margin": "none",
-		  "spacing": "sm",
-		  "contents": [
-			{
-			  "type": "button",
-			  "style": "secondary",
-			  "height": "sm",
-			  "color": "#27ACB2",
-			  "action": {
-				"type": "message",
-				"label": "open",
-				"text": "open"
+			"type": "box",
+			"layout": "vertical",
+			"margin": "none",
+			"spacing": "sm",
+			"contents": [
+			  {
+				"type": "box",
+				"layout": "horizontal",
+				"margin": "lg",
+				"contents": [
+				  {
+					"type": "button",
+					"style": "secondary",
+					"height": "sm",
+					"color": "#27ACB2",
+					"action": {
+					  "type": "message",
+					  "label": "open",
+					  "text": "open"
+					}
+				  },
+				  {
+					"type": "button",
+					"style": "secondary",
+					"height": "sm",
+					"color": "#27ACB2",
+					"action": {
+					  "type": "message",
+					  "label": "close",
+					  "text": "close"
+					},
+					"margin": "lg"
+				  }
+				]
 			  },
-			  "margin": "lg"
-			},
-			{
-			  "type": "button",
-			  "style": "secondary",
-			  "height": "sm",
-			  "color": "#27ACB2",
-			  "action": {
-				"type": "message",
-				"label": "close",
-				"text": "close"
-			  },
-			  "margin": "lg"
-			},
-			{
+			  {
 				"type": "button",
 				"style": "secondary",
 				"height": "sm",
@@ -73,32 +79,33 @@
 				},
 				"margin": "lg"
 			  },
-			{
-			  "type": "button",
-			  "style": "secondary",
-			  "height": "sm",
-			  "color": "#27ACB2",
-			  "action": {
-				"type": "message",
-				"label": "schedule",
-				"text": "schedule"
+			  {
+				"type": "button",
+				"style": "secondary",
+				"height": "sm",
+				"color": "#27ACB2",
+				"action": {
+				  "type": "message",
+				  "label": "schedule",
+				  "text": "schedule"
+				},
+				"margin": "lg"
 			  },
-			  "margin": "lg"
-			},
-			{
-			  "type": "button",
-			  "style": "secondary",
-			  "height": "sm",
-			  "color": "#27ACB2",
-			  "action": {
-				"type": "message",
-				"label": "help",
-				"text": "help"
-			  },
-			  "margin": "lg"
-			}
-		  ]
-		}
+			  {
+				"type": "button",
+				"style": "secondary",
+				"height": "sm",
+				"color": "#27ACB2",
+				"action": {
+				  "type": "message",
+				  "label": "help",
+				  "text": "help"
+				},
+				"margin": "lg"
+			  }
+			]
+		  }
+		  
 	  ],
 	  "backgroundColor": "#464F69"
 	},

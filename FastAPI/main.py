@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request, HTTPException
 import uvicorn
-from linebot import AsyncLineBotApi, WebhookParser, WebhookHandler
+from linebot import AsyncLineBotApi, WebhookParser
 from linebot.aiohttp_async_http_client import AiohttpAsyncHttpClient
 from linebot.exceptions import InvalidSignatureError 
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, FlexSendMessage
@@ -8,11 +8,10 @@ from dotenv import load_dotenv
 import aiohttp
 import os
 import threading
-import queue
 import time
+import random
 import DAN
 from cmdHandler import parse_cmd
-
 
 
 load_dotenv()
@@ -24,11 +23,7 @@ async_http_client = AiohttpAsyncHttpClient(session)
 line_bot_api = AsyncLineBotApi(CHANNEL_ACCESS_TOKEN, async_http_client)
 parser = WebhookParser(CHANNEL_SECRET)
 
-# line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
-handler = WebhookHandler(CHANNEL_SECRET)
 
-# for storing messages from LineBot
-msgQueue = queue.Queue()
 lightStatus = None
 lsLock = threading.Lock()
 
@@ -36,17 +31,16 @@ user_id_set = set()
 app = FastAPI()
 
 
-# IoTtalk Setting, comment out because 7.iottalk.tw currently is down
-# ServerURL = 'https://7.iottalk.tw/'
-# Reg_addr = None
-# mac_addr = 'CD8601D38' + str(5634)
-# Reg_addr = mac_addr
-# DAN.profile['dm_name'] = 'WPS_LineBot'
-# DAN.profile['df_list'] = ['MSG-I', 'MSG-O']
-# DAN.profile['d_name'] = DAN.profile['dm_name'] + str(random.randint(0, 100))
-# DAN.device_registration_with_retry(ServerURL, Reg_addr)
-# print("dm_name is ", DAN.profile['dm_name'])
-# print("Server is ", ServerURL)
+ServerURL = 'https://3.iottalk.tw/'
+Reg_addr = None
+mac_addr = 'CD8601D38' + str(5634)
+Reg_addr = mac_addr
+DAN.profile['dm_name'] = 'SD_LineBot'
+DAN.profile['df_list'] = ['MSG-I', 'MSG-O']
+DAN.profile['d_name'] = DAN.profile['dm_name'] + str(random.randint(0, 100))
+DAN.device_registration_with_retry(ServerURL, Reg_addr)
+print("dm_name is ", DAN.profile['dm_name'])
+print("Server is ", ServerURL)
 
 
 def loadUserId():
@@ -68,11 +62,6 @@ def saveUserId(userId):
     idFile.close()
 
 
-@app.get("/")
-def hello():
-    return "HTTPS Test OK."
-
-
 @app.post("/callback")
 async def handle_callback(request: Request):
     signature = request.headers['X-Line-Signature']
@@ -92,8 +81,8 @@ async def handle_callback(request: Request):
 
         res = parse_cmd(event.message.text)
 
-        # if res.iot_command:
-        #     DAN.push('MSG-I', iot_command)
+        if res.iot_command != 0:
+            DAN.push('MSG-I', res.iot_command)
     
         if res.msg_type == 'flex':
             await line_bot_api.reply_message(event.reply_token, FlexSendMessage('flex message', res.line_reply))
@@ -101,57 +90,6 @@ async def handle_callback(request: Request):
             await line_bot_api.reply_message(event.reply_token, TextSendMessage(text=res.line_reply))
         
     return 'OK'
-
-
-@app.post("/")
-async def callback(request: Request):
-    signature = request.headers["X-Line-Signature"]
-    body = await request.body()
-    try:
-        handler.handle(body.decode(), signature)
-    except InvalidSignatureError:
-        raise HTTPException(status_code=400, detail="Missing Parameters")
-    return "OK"
-
-
-@handler.add(MessageEvent, message=(TextMessage))
-def handle_message(event):
-    global msgQueue
-    if isinstance(event.message, TextMessage):
-        messages = event.message.text
-        userId = event.source.user_id
-
-        if not userId in user_id_set:
-            user_id_set.add(userId)
-            saveUserId(userId)
-
-        msgQueue.put((userId, messages.lower()))
-        
-
-# Pulls data from msgQueue and sends it to LineBot
-def pull_lineMessage():
-    global q, lsLock
-    while True:
-        # get user message from msgQueue, lock boardData
-        (id, data) = msgQueue.get()
-        lsLock.acquire()
-
-        # process the message and get the reply
-        lineReply, IoTCommand = someProcessing(id, data)
-
-        # send the reply to IoTtalk
-        if IoTCommand:
-            DAN.push('MSG-I', IoTCommand)
-
-        # send the reply to LineBot
-        for userId in user_id_set:
-            line_bot_api.push_message(userId, TextSendMessage(text=lineReply))
-            user_id_set.remove(userId)
-            break
-
-        # mark the task as done, release boardData
-        lsLock.release()
-        msgQueue.task_done()
 
 
 def pull_BoardData():
@@ -229,9 +167,6 @@ if __name__ == '__main__':
     except Exception as e:
         print(e)
 
-    thread1 = threading.Thread(target=pull_lineMessage)
-    thread1.daemon = True
-    thread1.start()
 
     thread2 = threading.Thread(target=pull_BoardData)
     thread2.daemon = True
