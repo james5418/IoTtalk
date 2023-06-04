@@ -9,7 +9,9 @@ import aiohttp
 import os
 import threading
 import time
+import json
 import random
+import asyncio
 import DAN
 from cmdHandler import parse_cmd
 
@@ -23,11 +25,10 @@ async_http_client = AiohttpAsyncHttpClient(session)
 line_bot_api = AsyncLineBotApi(CHANNEL_ACCESS_TOKEN, async_http_client)
 parser = WebhookParser(CHANNEL_SECRET)
 
-user_id_set = set()
 app = FastAPI()
 
 
-ServerURL = 'https://3.iottalk.tw/'
+ServerURL = 'https://2.iottalk.tw/'
 mac_addr = 'CD8601D38' + str(5634)
 Reg_addr = mac_addr
 DAN.profile['dm_name'] = 'SD_LineBot'
@@ -55,10 +56,12 @@ async def handle_callback(request: Request):
         if not isinstance(event.message, TextMessage):
             continue
 
-        res = parse_cmd(event.message.text)
+        res = parse_cmd(event.message.text, event.source.user_id)
 
         if res.iot_command != -1:
             DAN.push('MSG-I', res.iot_command)
+            with open('light_status.txt', 'w') as f:
+                f.write(str(res.iot_command))
     
         if res.msg_type == 'flex':
             await line_bot_api.reply_message(event.reply_token, FlexSendMessage('flex message', res.line_reply))
@@ -68,49 +71,57 @@ async def handle_callback(request: Request):
     return 'OK'
 
 
-def pull_BoardData():
-    global lsLock
-    lsLock = threading.Lock()
+async def pullBoardData():
+    lastDoorOpenTime = 0
+    doorIsOpen = False
     while True:
         data = DAN.pull('MSG-O')
         if data and data[0]:
-            with lsLock:
-                with open("light_status.txt", "w") as f:
-                    if data[0] >= 1000:
-                        f.write("0")
-                        DAN.push('MSG-I', 0)
-                    else:
-                        f.write("1")
-                        DAN.push('MSG-I', 1)
-        time.sleep(1)
+            jsonDict = data[0]
+            with open("light_status.txt", "r") as f:
+                SwitchOn = (f.read() == "1")
+                LightOn = (jsonDict["light"] < 900)
+                doorOpen = (jsonDict["distance"] <= 10)
+            
+            if doorOpen and lastDoorOpenTime + 5 < time.time():
+                lastDoorOpenTime = time.time()
+                doorIsOpen = True
+
+                if not SwitchOn:
+                    sendAndWriteMsg("light_status.txt", 1)
+
+            elif (not LightOn) and SwitchOn:
+                sendAndWriteMsg("light_status.txt", 0)
+                    
+        if doorIsOpen:
+            doorIsOpen = False
+            await sendMsgToAllUser("門已開啟")
+
+        await asyncio.sleep(0.5)
+
+
+def sendAndWriteMsg(filename, msg):
+    DAN.push('MSG-I', msg)
+    with open(filename, "w") as f:
+        f.write(str(msg))
+
+
+async def sendMsgToAllUser(msg):
+    idList = loadUserId()
+    for id in idList:
+        await line_bot_api.push_message(id, TextSendMessage(text=msg))
 
 
 def loadUserId():
-    try:
-        idFile = open('idfile', 'r')
-        idList = idFile.readlines()
-        idFile.close()
-        idList = idList[0].split(';')
-        idList.pop()
-        return idList
-    except Exception as e:
-        print(e)
-        return []
+    with open('userId.txt', 'r') as f:
+        return f.read().split('\n')
 
 
-def saveUserId(userId):
-    idFile = open('idfile', 'a')
-    idFile.write(userId+';')
-    idFile.close()
-
+@app.on_event("startup")
+def main():
+    loop = asyncio.get_event_loop()
+    loop.create_task(pullBoardData())
+    
 
 if __name__ == '__main__':
-    idList = loadUserId()
-    if idList:
-        user_id_set = set(idList)
-
-    thread2 = threading.Thread(target=pull_BoardData)
-    thread2.daemon = True
-    thread2.start()
-
     uvicorn.run("main:app", host="0.0.0.0", port=8888, reload=True)

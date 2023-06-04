@@ -6,7 +6,7 @@
 	  "contents": [
 		{
 		  "type": "text",
-		  "text": "Usage",
+		  "text": "懶人智慧寢室",
 		  "weight": "bold",
 		  "size": "xxl",
           "margin": "none",
@@ -24,7 +24,7 @@
 		  "contents": [
 			{
 			  "type": "text",
-			  "text": "Welcome to your Smart Light Control System! Click or type the given commands to control your lights.",
+			  "text": "歡迎使用智慧燈光控制系統！\n點擊或輸入指令來控制燈光。",
 			  "size": "sm",
 			  "color": "#ffffffde",
 			  "wrap": true
@@ -49,7 +49,7 @@
 					"color": "#27ACB2",
 					"action": {
 					  "type": "message",
-					  "label": "open",
+					  "label": "開燈",
 					  "text": "open"
 					}
 				  },
@@ -60,7 +60,7 @@
 					"color": "#27ACB2",
 					"action": {
 					  "type": "message",
-					  "label": "close",
+					  "label": "關燈",
 					  "text": "close"
 					},
 					"margin": "lg"
@@ -74,7 +74,7 @@
 				"color": "#27ACB2",
 				"action": {
 				  "type": "message",
-				  "label": "status",
+				  "label": "燈光狀態",
 				  "text": "status"
 				},
 				"margin": "lg"
@@ -86,7 +86,7 @@
 				"color": "#27ACB2",
 				"action": {
 				  "type": "message",
-				  "label": "schedule",
+				  "label": "開/關燈排程",
 				  "text": "schedule"
 				},
 				"margin": "lg"
@@ -98,8 +98,8 @@
 				"color": "#27ACB2",
 				"action": {
 				  "type": "message",
-				  "label": "help",
-				  "text": "help"
+				  "label": "開關門提醒",
+				  "text": "alert"
 				},
 				"margin": "lg"
 			  }
