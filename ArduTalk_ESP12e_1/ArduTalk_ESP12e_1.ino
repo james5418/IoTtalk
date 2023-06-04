@@ -1,5 +1,5 @@
 //   ArduTalk
-#define DefaultIoTtalkServerIP  "140.113.199.203"
+#define DefaultIoTtalkServerIP  "140.113.199.202"
 #define DM_name  "NodeMCU" 
 #define DF_list  {"D0~","D1~","D2~","D5","D6","D7","D8","A0"}
 #define nODF     10  // The max number of ODFs which the DA can pull.
@@ -408,8 +408,8 @@ long LEDflashCycle = millis();
 long LEDonCycle = millis();
 int LEDhadFlashed = 0;
 
-int trigPin = 4;                  //Trig Pin
-int echoPin = 14;                  //Echo Pin
+int trigPin = 5;                  //Trig Pin
+int echoPin = 16;                  //Echo Pin
 long duration, cm;
 int buzzer = 13;
 
@@ -424,20 +424,27 @@ void loop() {
         //   myServo.write(60);
         // else
         //   myServo.write(120);
-        // digitalWrite(trigPin, LOW);
-        // delayMicroseconds(5);
-        // digitalWrite(trigPin, HIGH);     // 給 Trig 高電位，持續 10微秒
-        // delayMicroseconds(10);
-        // digitalWrite(trigPin, LOW);
+        digitalWrite(trigPin, LOW);
+        delayMicroseconds(5);
+        digitalWrite(trigPin, HIGH);     // 給 Trig 高電位，持續 10微秒
+        delayMicroseconds(10);
+        digitalWrite(trigPin, LOW);
 
-        // pinMode(echoPin, INPUT);             // 讀取 echo 的電位
-        // duration = pulseIn(echoPin, HIGH);   // 收到高電位時的時間
+        pinMode(echoPin, INPUT);             // 讀取 echo 的電位
+        duration = pulseIn(echoPin, HIGH);   // 收到高電位時的時間
 
-        // cm = (duration/2) / 29.1;         // 將時間換算成距離 cm 或 inch  
+        cm = (duration/2) / 29.1;         // 將時間換算成距離 cm 或 inch  
 
 
         pinA0 = analogRead(A0);
-        push("A0", String(pinA0));
+        String light_msg = String("{\"type\":\"light\",\"value\":") + String(pinA0) + String("}");
+        // push("A0", String(pinA0));
+        // push("A0", light_msg);
+        // String distance_msg = String("{\"type\":\"distance\",\"value\":") + String(cm) + String("}");
+        String msg = String("{\"light\":") + String(pinA0) + String(",\"distance\":") + String(cm) + String("}");
+        // push("A0", distance_msg);
+        push("A0", msg);
+        Serial.println(msg);
 
         // push("A0", String(cm));
 
