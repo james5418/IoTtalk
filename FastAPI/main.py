@@ -6,12 +6,10 @@ from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage, FlexSendMessage
 from dotenv import load_dotenv
 import aiohttp
-import os
-import threading
-import time
-import json
-import random
 import asyncio
+import os
+import time
+import random
 import DAN
 from cmdHandler import parse_cmd
 

@@ -98,7 +98,7 @@
 				"color": "#27ACB2",
 				"action": {
 				  "type": "message",
-				  "label": "開關門提醒",
+				  "label": "開門提醒",
 				  "text": "alert"
 				},
 				"margin": "lg"

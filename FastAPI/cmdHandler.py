@@ -49,7 +49,7 @@ def parse_cmd(message: str, id: str = "") -> ResponseData:
         'open': ResponseData(line_reply='已開燈', iot_command=1, msg_type='text'),
         'close': ResponseData(line_reply='已關燈', iot_command=0, msg_type='text'),
         'status': ResponseData(line_reply=get_light_status(), iot_command=-1, msg_type='text'),
-        'schedule': ResponseData(line_reply='請使用以下指令：\nschedule <HH:MM> <on/off>', iot_command=-1, msg_type='text'),
+        'schedule': ResponseData(line_reply='使用以下指令設定排程：\nschedule <HH:MM> <on/off>', iot_command=-1, msg_type='text'),
         'alert': ResponseData(line_reply='幫您開啟通知囉！', iot_command=-1, msg_type='text'),
         'help': ResponseData(line_reply=get_usage(), iot_command=-1, msg_type='flex')
     }
