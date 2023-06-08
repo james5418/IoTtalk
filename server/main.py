@@ -120,16 +120,9 @@ def loadUserId():
         return f.read().split('\n')
 
 
-async def bgTest():
-    while True:
-        print("bgTest")
-        await asyncio.sleep(1)
-
-
 @app.on_event("startup")
 def main():
     loop = asyncio.get_event_loop()
-    # loop.create_task(bgTest())
     loop.create_task(pullBoardData())
 
 
